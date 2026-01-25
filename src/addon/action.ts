@@ -45,7 +45,9 @@ export function scan( api: Api, button: HTMLElement, options: Upload.Options = {
         try {
             await Upload.sync( api );
 
-            for await ( const { count, total } of Upload.scan( api, options ) ) {
+            for await ( const data of Upload.scan( api, options ) ) {
+                const { count, total } = data;
+
                 // Update progress on each yield
                 button.textContent = `⏳ ${count}/${total}`;
                 scanned = count;
@@ -95,10 +97,12 @@ export function autoScan( api: Api, button: HTMLElement, options: Upload.Options
             button.classList.remove('active', 'running', 'success', 'error');
             button.textContent = '🔄 Auto Scan';
         } else {
+            let scanned = 0;
+
             // Start the auto scan
             button.classList.add('active');
             button.textContent = '🔄 Auto Scan Active';
-            
+
             // Set up interval to scan every hour
             interval = setInterval( async () => {
                 // Reset classes and set running state
@@ -107,13 +111,13 @@ export function autoScan( api: Api, button: HTMLElement, options: Upload.Options
                 button.setAttribute('disabled', 'true');
                 button.textContent = '⏳ Starting...';
 
-                let scanned = 0;
-
                 try {
-                    for await ( const { count, total } of Upload.scan( api, options ) ) {
-                        // Update progress on each yield
+                    for await ( const data of Upload.scan( api, options ) ) {
+                        const { batch, total, count } = data;
+
+                        // Update progress on each yield    
                         button.textContent = `⏳ ${count}/${total}`;
-                        scanned = count;
+                        scanned += batch?.length ?? 0;
                     }
 
                     // Success - show green with count
