@@ -1,0 +1,13 @@
+services:
+  app:
+    build:
+      args:
+        API_VERSION: ${API_VERSION}
+        ENV: ${ENV}
+        TZ: ${TZ}
+      context: ./
+      dockerfile: Dockerfile
+      ssh:
+        - default=${SSH_AUTH_SOCK}
+    environment:
+      - API_VERSION=1.0.0

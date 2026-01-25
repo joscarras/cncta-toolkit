@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNC TA Tools</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #0a0e27;
+            color: #e4e4e7;
+            padding: 2rem;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { margin-bottom: 1.5rem; color: #60a5fa; }
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #1e293b;
+        }
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            color: #94a3b8;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            margin-bottom: -2px;
+        }
+        .tab:hover {
+            color: #e4e4e7;
+            background: rgba(59, 130, 246, 0.1);
+        }
+        .tab.active {
+            color: #60a5fa;
+            border-bottom-color: #60a5fa;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        form {
+            background: #1e293b;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .field { margin-bottom: 0; }
+        .field.full-width {
+            grid-column: 1 / -1;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #94a3b8;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        input, select {
+            width: 100%;
+            padding: 0.625rem;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #e4e4e7;
+            font-size: 0.9375rem;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #60a5fa;
+        }
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover { background: #2563eb; }
+        button:active { background: #1d4ed8; }
+        button[type="submit"] {
+            margin-top: 0.5rem;
+        }
+        button:disabled {
+            background: #475569;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        button.loading {
+            background: #475569;
+            cursor: wait;
+        }
+        .results {
+            background: #1e293b;
+            padding: 2rem;
+            border-radius: 8px;
+        }
+        .result-item {
+            background: #0f172a;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 6px;
+            border-left: 3px solid #3b82f6;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .result-item:hover {
+            background: #1e293b;
+        }
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            gap: 1rem;
+        }
+        .result-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn {
+            padding: 0.5rem 0.875rem;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            white-space: nowrap;
+        }
+        .btn:hover {
+            background: #2563eb;
+        }
+        .btn:active {
+            background: #1d4ed8;
+        }
+        .coords {
+            color: #60a5fa;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .coords:hover {
+            background: rgba(96, 165, 250, 0.1);
+        }
+        .coords:active {
+            background: rgba(96, 165, 250, 0.2);
+        }
+        .stats {
+            display: flex;
+            gap: 1rem;
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .stat-label { color: #64748b; }
+        .stat-value { color: #e4e4e7; font-weight: 600; }
+        .power { color: #34d399; }
+        .efficiency { color: #fbbf24; }
+        .world { color: #a78bfa; }
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #10b981;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 6px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transform: translateY(1rem);
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .details {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #334155;
+            display: none;
+        }
+        .result-item.expanded .details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .detail-label {
+            color: #64748b;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .detail-value {
+            color: #e4e4e7;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        .hash-value {
+            font-family: monospace;
+            font-size: 0.75rem;
+            word-break: break-all;
+        }
+        .expand-icon {
+            font-size: 0.875rem;
+            transition: transform 0.2s;
+        }
+        .result-item.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+        .state-btn {
+            padding: 0.5rem;
+            background: #334155;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 2rem;
+            min-height: 2rem;
+        }
+        .state-btn:hover {
+            background: #475569;
+        }
+        .state-btn.active {
+            background: #3b82f6;
+        }
+        .state-btn.active:hover {
+            background: #2563eb;
+        }
+        .result-item.state-invalid {
+            background: rgba(239, 68, 68, 0.15);
+            border-left-color: #ef4444;
+        }
+        .result-item.state-locked {
+            background: rgba(251, 191, 36, 0.15);
+            border-left-color: #fbbf24;
+        }
+        .result-item.state-seen {
+            background: rgba(34, 197, 94, 0.15);
+            border-left-color: #22c55e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚙️ CNC TA Tools</h1>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-tab="readings">Readings</button>
+            <button class="tab" data-tab="seek">Seek</button>
+            <button class="tab" data-tab="optimize">Optimize</button>
+            <button class="tab" data-tab="find">Find</button>
+        </div>
+
+        <!-- Readings Tab -->
+        <div class="tab-content active" id="readings-tab">
+            <form id="readingsForm">
+                <div class="field full-width">
+                    <label for="readingsUrl">Layout URL</label>
+                    <input type="text" id="readingsUrl" name="url" placeholder="Paste cnctaopt.com URL here..." required>
+                </div>
+                <button type="submit">📊 Get Readings</button>
+            </form>
+
+            <div id="readingsResults"></div>
+        </div>
+
+        <!-- Seek Tab -->
+        <div class="tab-content" id="seek-tab">
+            <form id="seekForm">
+                <div class="field full-width">
+                    <label for="seekUrl">Layout URL</label>
+                    <input type="text" id="seekUrl" name="url" placeholder="Paste cnctaopt.com URL here..." required>
+                </div>
+                <button type="submit">🔍 Seek Optimal</button>
+            </form>
+
+            <div id="seekResults"></div>
+        </div>
+
+        <!-- Optimize Tab -->
+        <div class="tab-content" id="optimize-tab">
+            <form id="optimizeForm">
+                <div class="field full-width">
+                    <label for="optimizeUrl">Layout URL</label>
+                    <input type="text" id="optimizeUrl" name="url" placeholder="Paste cnctaopt.com URL here..." required>
+                </div>
+                <button type="submit">⚡ Optimize</button>
+            </form>
+
+            <div id="optimizeResults"></div>
+        </div>
+
+        <!-- Find Tab -->
+        <div class="tab-content" id="find-tab">
+            <form id="searchForm">
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="world">World ID</label>
+                        <input type="number" id="world" name="world" placeholder="e.g., 73">
+                    </div>
+
+                    <div class="field">
+                        <label for="type">Type</label>
+                        <select id="type" name="type">
+                            <option value="power">Power</option>
+                            <option value="tiberium">Tiberium</option>
+                            <option value="crystal">Crystal</option>
+                            <option value="credit">Credit</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="coords">Coordinates (x,y)</label>
+                        <input type="text" id="coords" name="coords" placeholder="e.g., 500:500">
+                    </div>
+
+                    <div class="field">
+                        <label for="efficiency">Min Efficiency (%)</label>
+                        <input type="number" id="efficiency" name="efficiency" min="0" max="100" step="0.01" placeholder="e.g., 90.5">
+                    </div>
+
+                    <div class="field">
+                        <label for="limit">Limit</label>
+                        <input type="number" id="limit" name="limit" value="20" min="1" max="100">
+                    </div>
+                </div>
+
+                <div class="field full-width" style="margin-top: 0.5rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" id="hideInvalid" name="hideInvalid" style="width: auto; cursor: pointer;">
+                        <span>Hide invalid layouts</span>
+                    </label>
+                </div>
+
+                <button type="submit">Search Layouts</button>
+            </form>
+
+            <div id="results" style="display: none;">
+                <h2>Results</h2>
+                <div id="resultsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">Coords copied to clipboard!</div>
+
+    <script>
+        // LocalStorage helper functions for layout states
+        const STORAGE_KEY = 'layout_states';
+
+        function getLayoutStates() {
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            } catch {
+                return {};
+            }
+        }
+
+        function setLayoutState(world, x, y, type, state) {
+            const states = getLayoutStates();
+            const key = `${world}_${x}_${y}_${type}`;
+            if (state === null) {
+                delete states[key];
+            } else {
+                states[key] = state;
+            }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(states));
+        }
+
+        function getLayoutState(world, x, y, type) {
+            const states = getLayoutStates();
+            const key = `${world}_${x}_${y}_${type}`;
+            return states[key] || null;
+        }
+
+        // Helper function to format resource numbers to human-readable format
+        function formatResource(value) {
+            if (value === null || value === undefined || value === 'N/A') return 'N/A';
+
+            const num = typeof value === 'string' ? parseFloat(value) : value;
+            if (isNaN(num)) return 'N/A';
+
+            const absNum = Math.abs(num);
+            const sign = num < 0 ? '-' : '';
+
+            if (absNum >= 1e12) {
+                return sign + (absNum / 1e12).toFixed(2) + ' T';
+            } else if (absNum >= 1e9) {
+                return sign + (absNum / 1e9).toFixed(2) + ' G';
+            } else if (absNum >= 1e6) {
+                return sign + (absNum / 1e6).toFixed(2) + ' M';
+            } else if (absNum >= 1e3) {
+                return sign + (absNum / 1e3).toFixed(2) + ' K';
+            } else {
+                return num.toFixed(2);
+            }
+        }
+
+        // Tab switching
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.dataset.tab;
+
+                // Update active tab
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                // Update active content
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === `${tabName}-tab`) {
+                        content.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        // Expand/collapse functionality
+        function toggleExpand(event) {
+            const item = event.currentTarget;
+            // Don't toggle if clicking on buttons or links
+            if (event.target.closest('.btn') || event.target.closest('.coords') || event.target.closest('.state-btn')) {
+                return;
+            }
+            item.classList.toggle('expanded');
+        }
+
+        // State change functionality
+        function changeState(event) {
+            const button = event.target;
+            if (!button.classList.contains('state-btn')) return;
+
+            const resultItem = button.closest('.result-item');
+            const world = parseInt(resultItem.dataset.world);
+            const x = parseInt(resultItem.dataset.x);
+            const y = parseInt(resultItem.dataset.y);
+            const type = resultItem.dataset.type;
+            const requestedState = button.dataset.state;
+            const currentState = resultItem.dataset.state;
+
+            // Toggle: if clicking the same state, set to null (clear state)
+            const newState = currentState === requestedState ? null : requestedState;
+
+            // Save to localStorage
+            setLayoutState(world, x, y, type, newState);
+
+            // Update UI
+            resultItem.dataset.state = newState || '';
+
+            // Remove all state classes
+            resultItem.classList.remove('state-invalid', 'state-locked', 'state-seen');
+
+            // Add new state class if not null
+            if (newState) {
+                resultItem.classList.add('state-' + newState);
+            }
+
+            // Update button active states
+            resultItem.querySelectorAll('.state-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (newState && btn.dataset.state === newState) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // Helper to create expandable result HTML
+        function createResultHtml(title, data, url) {
+            return `
+                <div class="result-item" style="margin-top: 0; margin-bottom: 1.5rem;">
+                    <div class="result-header">
+                        <div style="color: #60a5fa; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                            ${title}
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="result-actions">
+                            <a href="${url}" target="_blank" class="btn" title="Open layout">
+                                🔗 Open
+                            </a>
+                        </div>
+                    </div>
+                    <div class="stats">
+                        <div class="stat">
+                            <span class="stat-label">Power:</span>
+                            <span class="stat-value power">${formatResource(data.totalPower)}</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Efficiency:</span>
+                            <span class="stat-value efficiency">${data.efficiency?.toFixed(1) ?? 'N/A'}%</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Units:</span>
+                            <span class="stat-value">${data.units ?? 'N/A'}</span>
+                        </div>
+                    </div>
+                    <div class="details">
+                        <div class="detail-item">
+                            <span class="detail-label">Total Power</span>
+                            <span class="detail-value power">${formatResource(data.totalPower)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Continuous Power</span>
+                            <span class="detail-value">${formatResource(data.continuousPower)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Resource Power</span>
+                            <span class="detail-value">${formatResource(data.resourcePower)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Power Plants</span>
+                            <span class="detail-value">${data.powerPlants ?? 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Accumulators</span>
+                            <span class="detail-value">${data.accumulators ?? 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Total Units</span>
+                            <span class="detail-value">${data.units ?? 'N/A'}</span>
+                        </div>
+                        ${data.totalTiberium !== undefined ? `
+                        <div class="detail-item">
+                            <span class="detail-label">Tiberium</span>
+                            <span class="detail-value">${formatResource(data.totalTiberium)}</span>
+                        </div>
+                        ` : ''}
+                        ${data.totalCrystal !== undefined ? `
+                        <div class="detail-item">
+                            <span class="detail-label">Crystal</span>
+                            <span class="detail-value">${formatResource(data.totalCrystal)}</span>
+                        </div>
+                        ` : ''}
+                        ${data.totalCredit !== undefined ? `
+                        <div class="detail-item">
+                            <span class="detail-label">Credit</span>
+                            <span class="detail-value">${formatResource(data.totalCredit)}</span>
+                        </div>
+                        ` : ''}
+                        ${data.hash ? `
+                        <div class="detail-item" style="grid-column: 1 / -1;">
+                            <span class="detail-label">Hash</span>
+                            <span class="detail-value hash-value">${data.hash}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Find tab functionality
+        const form = document.getElementById('searchForm');
+        const results = document.getElementById('results');
+        const resultsList = document.getElementById('resultsList');
+        const toast = document.getElementById('toast');
+        const hideInvalidCheckbox = document.getElementById('hideInvalid');
+
+        // Load hideInvalid preference from localStorage
+        const HIDE_INVALID_KEY = 'hide_invalid_layouts';
+        const hideInvalidPref = localStorage.getItem(HIDE_INVALID_KEY) === 'true';
+        hideInvalidCheckbox.checked = hideInvalidPref;
+
+        // Save hideInvalid preference when changed
+        hideInvalidCheckbox.addEventListener('change', () => {
+            localStorage.setItem(HIDE_INVALID_KEY, hideInvalidCheckbox.checked);
+        });
+
+        function showToast() {
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        async function copyCoords(x, y) {
+            try {
+                await navigator.clipboard.writeText(`[coords]${x}:${y}[/coords]`);
+                showToast();
+            } catch (err) {
+                console.error('Failed to copy:', err);
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const params = new URLSearchParams();
+
+            for (const [key, value] of formData.entries()) {
+                if (value) {
+                    params.append(key, value);
+                }
+            }
+
+            try {
+                const response = await fetch('/find?' + params.toString());
+                let data = await response.json();
+
+                if (data && data.length > 0) {
+                    // Merge localStorage states and filter if needed
+                    data = data.map(item => {
+                        const localState = getLayoutState(item.world, item.x, item.y, item.type);
+                        return { ...item, state: localState || item.state || '' };
+                    });
+
+                    // Filter out invalid layouts if checkbox is checked
+                    if (hideInvalidCheckbox.checked) {
+                        data = data.filter(item => item.state !== 'invalid');
+                    }
+
+                    if (data.length > 0) {
+                        results.style.display = 'block';
+                        resultsList.innerHTML = data.map(item => {
+                            const state = item.state;
+                            return `
+                        <div class="result-item ${state ? 'state-' + state : ''}" data-world="${item.world}" data-x="${item.x}" data-y="${item.y}" data-type="${item.type}" data-state="${state}">
+                            <div class="result-header">
+                                <div style="color: #60a5fa; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                                    <div class="coords" onclick="copyCoords(${item.x}, ${item.y})" title="Click to copy">
+                                        (${item.x}, ${item.y})
+                                    </div>
+                                    <span class="expand-icon">▼</span>
+                                </div>
+                                <div class="result-actions" style="display: flex; gap: 0.375rem; align-items: center;">
+                                    <button class="state-btn ${state === 'invalid' ? 'active' : ''}" data-state="invalid" title="Mark as invalid">❌</button>
+                                    <button class="state-btn ${state === 'locked' ? 'active' : ''}" data-state="locked" title="Mark as locked">🔒</button>
+                                    <button class="state-btn ${state === 'seen' ? 'active' : ''}" data-state="seen" title="Mark as seen">✓</button>
+                                    <a href="${item.link}" target="_blank" class="btn" title="Open in optimizer">
+                                        🔗 Open
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="stats">
+                                <div class="stat">
+                                    <span class="stat-label">World:</span>
+                                    <span class="stat-value world">${item.world}</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-label">Power:</span>
+                                    <span class="stat-value power">${formatResource(item.data.totalPower)}</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-label">Efficiency:</span>
+                                    <span class="stat-value efficiency">${item.efficiency?.toFixed(1) ?? 'N/A'}%</span>
+                                </div>
+                            </div>
+                            <div class="details">
+                                <div class="detail-item">
+                                    <span class="detail-label">Total Power</span>
+                                    <span class="detail-value power">${formatResource(item.data.totalPower)}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Continuous Power</span>
+                                    <span class="detail-value">${formatResource(item.data.continuousPower)}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Resource Power</span>
+                                    <span class="detail-value">${formatResource(item.data.resourcePower)}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Power Plants</span>
+                                    <span class="detail-value">${item.data.powerPlants ?? 'N/A'}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Accumulators</span>
+                                    <span class="detail-value">${item.data.accumulators ?? 'N/A'}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Total Units</span>
+                                    <span class="detail-value">${item.data.units ?? 'N/A'}</span>
+                                </div>
+                                <div class="detail-item" style="grid-column: 1 / -1;">
+                                    <span class="detail-label">Hash</span>
+                                    <span class="detail-value hash-value">${item.hash}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `}).join('');
+
+                    // Add click listeners to all result items
+                    resultsList.querySelectorAll('.result-item').forEach(item => {
+                        item.addEventListener('click', toggleExpand);
+                        // Add state button listeners
+                        item.querySelectorAll('.state-btn').forEach(btn => {
+                            btn.addEventListener('click', changeState);
+                        });
+                    });
+                    } else {
+                        results.style.display = 'block';
+                        resultsList.innerHTML = '<p style="color: #94a3b8;">No results found</p>';
+                    }
+                } else {
+                    results.style.display = 'block';
+                    resultsList.innerHTML = '<p style="color: #94a3b8;">No results found</p>';
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        });
+
+        // Make copyCoords available globally
+        window.copyCoords = copyCoords;
+
+        // Readings tab functionality
+        const readingsForm = document.getElementById('readingsForm');
+        const readingsResults = document.getElementById('readingsResults');
+
+        readingsForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = readingsForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+
+            // Set loading state
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+            submitBtn.textContent = '⏳ Processing...';
+
+            const url = readingsForm.url.value;
+
+            try {
+                const response = await fetch('/readings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                const data = await response.json();
+
+                if (data) {
+                    const resultHtml = createResultHtml('Reading', data, data.link);
+                    readingsResults.insertAdjacentHTML('afterbegin', resultHtml);
+                    // Add click listener to the newly added item
+                    readingsResults.querySelector('.result-item').addEventListener('click', toggleExpand);
+                    readingsForm.reset();
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            } finally {
+                // Clear loading state
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+                submitBtn.textContent = originalText;
+            }
+        });
+
+        // Seek tab functionality
+        const seekForm = document.getElementById('seekForm');
+        const seekResults = document.getElementById('seekResults');
+
+        seekForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = seekForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+
+            // Set loading state
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+            submitBtn.textContent = '⏳ Seeking...';
+
+            const url = seekForm.url.value;
+
+            try {
+                const response = await fetch('/seek', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                const data = await response.json();
+
+                if (data) {
+                    const resultHtml = createResultHtml('Seek Result', data, data.link);
+                    seekResults.insertAdjacentHTML('afterbegin', resultHtml);
+                    // Add click listener to the newly added item
+                    seekResults.querySelector('.result-item').addEventListener('click', toggleExpand);
+                    seekForm.reset();
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            } finally {
+                // Clear loading state
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+                submitBtn.textContent = originalText;
+            }
+        });
+
+        // Optimize tab functionality
+        const optimizeForm = document.getElementById('optimizeForm');
+        const optimizeResults = document.getElementById('optimizeResults');
+
+        optimizeForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = optimizeForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+
+            // Set loading state
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+            submitBtn.textContent = '⏳ Optimizing...';
+
+            const url = optimizeForm.url.value;
+
+            try {
+                const response = await fetch('/optimize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                const data = await response.json();
+
+                if (data) {
+                    const resultHtml = createResultHtml('Optimize Result', data, data.link);
+                    optimizeResults.insertAdjacentHTML('afterbegin', resultHtml);
+                    // Add click listener to the newly added item
+                    optimizeResults.querySelector('.result-item').addEventListener('click', toggleExpand);
+                    optimizeForm.reset();
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            } finally {
+                // Clear loading state
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+                submitBtn.textContent = originalText;
+            }
+        });
+    </script>
+</body>
+</html>

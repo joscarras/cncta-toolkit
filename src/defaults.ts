@@ -1,0 +1,17 @@
+export const cnctaoptUrl = "https://www.cnctaopt.com/index.html";
+export const defRow = 8;
+export const defaultLevel = 40;
+export const gridCols = 9;
+export const gridRows = 20;
+export const gridLength = gridCols * gridRows;
+export const gridSize = gridLength - 1;
+export const layoutRows = 8;
+export const layoutLength = layoutRows * gridCols;
+export const layoutSize = layoutLength - 1;
+export const maxUnits = 41 - 1;// Excludes command center
+export const minCampLevel = 63;
+export const offRow = 16;
+export const scannerDelay = 1200;
+export const token = "__TOKEN__";
+export const host = "__HOST__";
+export const workers = 4;

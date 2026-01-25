@@ -1,0 +1,31 @@
+{
+    "author": "Joseph Carras <joscarras@gmail.com>",
+    "description": "CNCTA Toolkit - Advanced base layout optimizer for Command & Conquer: Tiberium Alliances. Features power plant optimization algorithms, base scanner, layout calculator, and CNCOpt integration.",
+    "devDependencies": {
+        "@types/bun": "^1.2.21",
+        "@types/firefox-webext-browser": "^143.0.0",
+        "typescript": "^5.9.2",
+        "web-ext": "^9.2.0"
+    },
+    "license": "ISC",
+    "main": "src/index.ts",
+    "name": "cncta-toolkit",
+    "scripts": {
+        "once": "bun src/cli/index.ts",
+        "dev": "bun --watch src/cli/index.ts",
+        "node:dev": "node --watch --experimental-strip-types  src/cli/index.ts",
+        "serve": "bun --env-file=.env run src/server/router.ts",
+        "serve:dev": "bun --watch --env-file=.env run src/server/router.ts",
+        "addon:bundle": "bun --env-file=.env build src/dist/index.ts --target browser --outfile dist/content.js && bun --env-file=.env build src/dist/background.ts --target browser --outfile dist/background.js",
+        "addon:dev": "bun --watch --env-file=.env build src/dist/index.ts --target browser --outfile dist/content.js & bun --watch --env-file=.env build src/dist/background.ts --target browser --outfile dist/background.js",
+        "addon:sign": "bun --env-file=.env run web-ext sign",
+        "addon:release": "bun run addon:bundle && bun run addon:sign",
+        "addon:run": "web-ext run --source-dir=./addon",
+        "addon:start": "web-ext run --source-dir=./addon --firefox-profile=./firefox-profile --keep-profile-changes",
+        "addon:lint": "web-ext lint --source-dir=./addon",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "tsc": "tsc"
+    },
+    "type": "module",
+    "version": "1.0.0"
+}
