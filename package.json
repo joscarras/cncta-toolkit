@@ -11,8 +11,8 @@
     "main": "src/index.ts",
     "name": "cncta-toolkit",
     "scripts": {
-        "addon:bundle": "bun --env-file=.env build src/dist/index.ts --target browser --outfile dist/content.js && bun --env-file=.env build src/dist/background.ts --target browser --outfile dist/background.js",
-        "addon:dev": "bun --watch --env-file=.env build src/dist/index.ts --target browser --outfile dist/content.js & bun --watch --env-file=.env build src/dist/background.ts --target browser --outfile dist/background.js",
+        "addon:bundle": "bun --env-file=.env build src/addon/index.ts --target browser --outfile dist/content.js && bun --env-file=.env build src/addon/background.ts --target browser --outfile dist/background.js",
+        "addon:dev": "bun --watch --env-file=.env build src/addon/index.ts --target browser --outfile dist/content.js & bun --watch --env-file=.env build src/addon/background.ts --target browser --outfile dist/background.js",
         "addon:lint": "web-ext lint --source-dir=./dist",
         "addon:release": "bun run addon:bundle && bun run addon:sign",
         "addon:run": "web-ext run --source-dir=./dist",
