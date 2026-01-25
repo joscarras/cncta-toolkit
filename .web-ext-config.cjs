@@ -5,5 +5,5 @@ module.exports = {
         channel: "unlisted",
     },
     sourceDir: "addon",
-    artifactsDir: "artifacts",
+    artifactsDir: "dist",
 };

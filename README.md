@@ -6,7 +6,6 @@ Advanced base layout optimizer for Command & Conquer: Tiberium Alliances. Featur
 
 - 🔋 **Power Plant Optimizer** - Advanced algorithms for optimal power plant and accumulator placement
 - 🔍 **Base Scanner** - Analyze player and NPC bases
-- 📊 **Layout Calculator** - Optimize defense layouts for maximum efficiency
 - 🔗 **CNCOpt Integration** - Seamless integration with community tools
 - 🌐 **Web Extension** - Browser addon for in-game functionality
 - 💻 **CLI Interface** - Command-line tools for layout optimization
