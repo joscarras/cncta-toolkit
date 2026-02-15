@@ -17,8 +17,8 @@ export const panel = `
     </div>
     <div class="cnc-panel-content">
         <button id="cnc-sync-btn" class="cnc-tool-btn">💾 Sync</button>
-        <button id="cnc-scan-btn" class="cnc-tool-btn">🔍 Regular Scan</button>
         <button id="cnc-quick-scan-btn" class="cnc-tool-btn">⚡ Quick Scan</button>
+        <button id="cnc-scan-btn" class="cnc-tool-btn">🔍 Regular Scan</button>
         <button id="cnc-auto-scan-btn" class="cnc-tool-btn">🔄 Auto Scan</button>
     </div>
 `
