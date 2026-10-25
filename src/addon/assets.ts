@@ -20,6 +20,7 @@ export const panel = `
         <button id="cnc-quick-scan-btn" class="cnc-tool-btn">⚡ Quick Scan</button>
         <button id="cnc-scan-btn" class="cnc-tool-btn">🔍 Regular Scan</button>
         <button id="cnc-auto-scan-btn" class="cnc-tool-btn">🔄 Auto Scan</button>
+        <button id="cnc-sheet-btn" class="cnc-tool-btn" title="Shift-click to change the sheet URL">📊 Sheet</button>
     </div>
 `
 

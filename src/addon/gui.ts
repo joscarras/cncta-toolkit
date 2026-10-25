@@ -42,10 +42,20 @@ export default function gui() {
     addClick( menu, () => panel.classList.toggle("open") );
     addClick( "cnc-close-btn", () => panel.classList.remove("open") );
 
+    // Close when clicking outside; capture phase, as the game stops its own clicks
+    document.addEventListener("pointerdown", ( event ) => {
+        const target = event.target as Node;
+
+        if ( !panel.contains( target ) && !menu.contains( target ) ) {
+            panel.classList.remove("open");
+        }
+    }, true );
+
     return {
         autoScan: getElement( "cnc-auto-scan-btn" ),
         quickScan: getElement( "cnc-quick-scan-btn" ),
         scan: getElement( "cnc-scan-btn" ),
+        sheet: getElement( "cnc-sheet-btn" ),
         sync: getElement( "cnc-sync-btn" ),
     }
 }
