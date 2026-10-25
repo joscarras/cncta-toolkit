@@ -4,6 +4,6 @@ module.exports = {
         apiSecret: process.env.WEB_EXT_API_SECRET,
         channel: "unlisted",
     },
-    sourceDir: "addon",
-    artifactsDir: "dist",
+    sourceDir: "dist",
+    artifactsDir: "web-ext-artifacts",
 };
