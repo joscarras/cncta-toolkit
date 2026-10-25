@@ -19,6 +19,21 @@ function getRequest( url: URL, options: RequestInit ) {
     } );
 }
 
+// Only Google Apps Script web apps get a plain POST, without the token
+function isSheet( url: unknown ) {
+    return typeof url === "string" && url.startsWith( "https://script.google.com/" );
+}
+
+async function send( url: string, body: string ) {
+    const request = await globalThis.fetch( url, { method: "POST", body, headers: { "Content-Type": "text/plain" } } );
+
+    if ( request.ok ) return request.json();
+
+    const { statusText, status } = request;
+    const err = await request.text();
+    throw new Error( `Error: ${status} ${statusText}: ${err}` );
+}
+
 // Background script listener (used by Firefox)
 export async function listener( payload: Payload, sender: Sender ) {
     try {
@@ -31,6 +46,10 @@ export async function listener( payload: Payload, sender: Sender ) {
             const { statusText, status } = request
             const err = await request.text();
             throw new Error( `Error: ${status} ${statusText}: ${err}` );
+        }
+
+        if ( payload.type === "post" && isSheet( payload.url ) && payload.body ) {
+            return send( payload.url as string, payload.body as string );
         }
 
         if ( payload.type === "storage.get" && payload.key ) {
@@ -65,6 +84,19 @@ export async function load<Type>( path: string, options: RequestInit ) {
     const { statusText, status } = request;
     const err = await request.text();
     throw new Error( `Error: ${status} ${statusText}: ${err}` );
+}
+
+export async function post<Type>( url: string, body: string ) {
+    if ( !isSheet( url ) ) throw new Error( "Not a Google Apps Script URL" );
+
+    // Firefox: use message passing to background script
+    if ( runtime?.sendMessage ) {
+        const payload = await runtime.sendMessage( { type: "post", url, body } );
+        const err = payload?.err as string | undefined;
+        return err ? Promise.reject( new Error( err ) ) : payload as Type;
+    }
+
+    return send( url, body ) as Promise<Type>;
 }
 
 export async function get<Type>( key: string, fallback: Type ) {

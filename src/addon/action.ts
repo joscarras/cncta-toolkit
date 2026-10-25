@@ -1,5 +1,6 @@
 import type { Api } from "/addon/api.ts";
 import * as Upload from "/addon/upload.ts";
+import * as Sheet from "/addon/sheet.ts";
 
 export function sync( api: Api, button: HTMLElement ) {
     button.addEventListener("click", async () => {
@@ -157,4 +158,27 @@ export function autoScan( api: Api, button: HTMLElement, options: Upload.Options
 
     // Automatically enable auto scan on load
     setTimeout(() => button.click(), 100);
+}
+
+export function sheet( api: Api, button: HTMLElement ) {
+    button.addEventListener("click", async ( event ) => {
+        if (button.hasAttribute("disabled")) return;
+
+        const originalText = button.textContent;
+        button.setAttribute("disabled", "true");
+        button.textContent = "⏳ Updating...";
+
+        try {
+            const { count } = await Sheet.update( api, event.shiftKey );
+            button.textContent = `✓ ${count} bases`;
+        } catch (error) {
+            button.textContent = "❌ Error";
+            console.error("CNCAddon Sheet Error:", error);
+        }
+
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.removeAttribute("disabled");
+        }, 2000);
+    });
 }

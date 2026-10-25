@@ -13,7 +13,7 @@ export interface City {
     CalculateAttackCommandPointCostToCoord( x: number, y: number ): number;
     GetResourceBonusGrowPerHour( type: string ): number;
     GetResourceCount( type: string ): number;
-    GetResourceGrowPerHour( type: string ): number;
+    GetResourceGrowPerHour( type: string, ...flags: boolean[] ): number;
     GetResourceMaxStorage( type: string ): number;
     GetResourceType( col: number, row: number ): number;
     [key: string]: unknown;

@@ -1,6 +1,6 @@
 import { init } from "/addon/api.ts";
 import gui from "/addon/gui.ts";
-import { sync, scan, autoScan } from "/addon/action.ts";
+import { sync, scan, autoScan, sheet } from "/addon/action.ts";
 
 const addon = "CNCAddon";
 
@@ -17,6 +17,7 @@ const addon = "CNCAddon";
         scan( api, elements.quickScan, { quick: true } );
         scan( api, elements.scan );
         sync( api, elements.sync );
+        sheet( api, elements.sheet );
 
         console.log( `${addon}: Ready! Click the scan button to start.` );
     } catch (error) {

@@ -132,6 +132,14 @@ bun run addon:release
 bun run addon:lint
 ```
 
+### Google Sheet
+
+The add-on's 📊 Sheet button writes every base of the logged-in account to a Google Sheet, one row each: levels, power, and how far each base is from the perfect layouts in `src/addon/perfect.ts`. Every account replaces only its own rows, so several accounts can share one sheet.
+
+1. In the sheet, open Extensions → Apps Script and paste in `sheet/Code.gs`.
+2. Deploy → New deployment → Web app, execute as yourself, access: Anyone.
+3. Click 📊 Sheet in the game and paste the web app URL when asked. Shift-click the button to change it.
+
 ## Project Structure
 
 ```
